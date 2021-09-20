@@ -1,0 +1,17 @@
+div h1 {
+    text-align: center;
+    background-color: lightblue;
+}
+
+.form {
+    text-align: center;
+    background-color: lightblue;
+}
+
+.result {
+    text-align: center;
+}
+
+.map{ 
+    border: 15px solid lightblue;
+}
