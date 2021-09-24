@@ -1,6 +1,11 @@
 import React  from "react"; 
 import axios from 'axios';
-import "./style.css"
+import "./style.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import WeatherInfo from "./component/WeatherInfo";
+import MovieInfo from "./component/MovieInfo";
+
+
 
  class App extends React.Component {
 
@@ -12,7 +17,8 @@ import "./style.css"
       searchQuery: '',
       showLocInfo: false,
       showError: false,
-      errorMsg: ''
+      errorMsg: '',
+      showWeatherData: false
     };
   }
 
@@ -25,16 +31,12 @@ import "./style.css"
 
       let reqUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.REACT_APP_LOCATION_KEY}&q=${this.state.searchQuery}&format=json`
 
-      let reqUr2 = `${process.env.REACT_APP_SERVER_LINK}/getWeather?cityNameSelect=${this.state.searchQuery}`
 
       let locResults = await axios.get(reqUrl);
-
-      let weatherResults = await axios.get(reqUr2);
 
       try {
       this.setState({
         locationResult: locResults.data[0],
-        weatherData: weatherResults.data,
         showLocInfo: true,
         showError: false
       })
@@ -46,12 +48,41 @@ import "./style.css"
         })
       
     }
-      
+      this.getweatherData();
+      this.getMovieData();
+
     console.log('aaaaaaaa', this.state.weatherData)
     console.log('dddddddd', locResults.data)
     console.log('dddddddd', locResults.data[0])
     console.log('error', this.state.showError)
     } 
+
+
+    getweatherData = async () => {
+      
+      let weatherUrl = `${process.env.REACT_APP_SERVER_LINK}/weather?city=${this.state.searchQuery}`
+
+      let weatherResults = await axios.get(weatherUrl);
+
+      this.setState({
+        showWeatherData:true,
+        weatherData: weatherResults.data,
+      })
+      console.log(this.state.weatherData,"data")
+    }
+
+
+    getMovieData = async () => {
+      let movieURL = `${process.env.REACT_APP_SERVER_LINK}/movie?query=${this.state.searchQuery}`
+      console.log('movie url',movieURL)
+      let movieDataResults = await axios.get(movieURL);
+      console.log('movie rueslts',movieDataResults)
+      this.setState({
+        showMovieData:true,
+        movieData: movieDataResults.data
+      });
+      console.log('movie data',this.state.movieData)
+    }
 
   render() {
     return (
@@ -68,15 +99,31 @@ import "./style.css"
         <p className="latC">latitude: {this.state.locationResult.lat}</p>
         <p className="longC">longitude: {this.state.locationResult.lon}</p>
         <img src = {`https://maps.locationiq.com/v3/staticmap?key=pk.e5c4cc0c12872b86c028374a9ac61865&center=${this.state.locationResult.lat},${this.state.locationResult.lon}&zoom=15&size=700x500`} alt="city" className="map"/>
-        {/* <p className = "description">Description: {this.state.weatherData[0].description}</p> */}
-        <p className="longC">data day 1: {this.state.weatherData[0].data}</p>
-        <p className="longC">description day 1: {this.state.weatherData[0].description}</p>
-        <p className="longC">data day 2: {this.state.weatherData[1].data}</p>
-        <p className="longC">description day 2: {this.state.weatherData[1].description}</p>
-        <p className="longC">data day 3: {this.state.weatherData[2].data}</p>
-        <p className="longC">description day 3: {this.state.weatherData[2].description}</p>
         </>
         }
+        {this.state.showWeatherData &&
+        <>
+        {this.state.weatherData.map((value, index) => {
+          return(
+            <WeatherInfo key={index} city={this.state.searchQuery} description={value.description} date={value.date} />
+          )
+        })
+        }
+        </>
+        }
+
+        {this.state.showMovieData &&
+        <>
+        {this.state.movieData.map((value,index) => {
+          return (
+            <>
+            <MovieInfo key={index} city={this.state.searchQuery} title={value.title} overview={value.overveiw} avgVotes={value.avgVotes} totalVotes={value.totalVotes} imgURL={value.imgURL} popularity={value.popularity} released={value.released}/>
+            </>
+          )
+        })}
+        </>
+        }
+        
         {this.state.showError &&
         <p>ERROR 404! Location NOT FOUND!!</p>
         }
